@@ -1,4 +1,4 @@
-from flask import Flask, render_template, Response, jsonify, request
+from flask import Flask, render_template, Response
 import cv2
 import mediapipe as mp
 import numpy as np
@@ -101,14 +101,6 @@ def index():
 @app.route('/video_feed')
 def video_feed():
     return Response(generate_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
-
-@app.route('/upload_image', methods=['POST'])
-def upload_image():
-    # 클라이언트로부터 받은 이미지 데이터를 처리
-    image_data = request.json['image_data']
-    # 여기서 이미지 데이터 처리 로직을 추가할 수 있음
-    print("Received image data from client")
-    return jsonify({'message': 'Image received successfully'})
 
 if __name__ == '__main__':
     app.run(debug=True)
