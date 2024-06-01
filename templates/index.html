@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exercise Tracker</title>
+    <title>Squat Counter</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>Exercise Tracker</h1>
-    <video id="videoElement" autoplay></video>
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <h1>Squat Counter Application</h1>
+    <p>This is a simple web application for counting squats using OpenCV and MediaPipe.</p>
+    <img src="{{ url_for('video_feed') }}" width="640" height="480">
 </body>
 </html>
