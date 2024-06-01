@@ -40,6 +40,7 @@ def generate_frames():
             
             try:
                 landmarks = results.pose_landmarks.landmark
+                
                 shoulder = [landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].x, landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].y]
                 elbow = [landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].x, landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].y]
                 wrist = [landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].x, landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].y]
@@ -71,7 +72,7 @@ def generate_frames():
             cv2.rectangle(image, (0, 0), (225, 73), (245, 117, 16), -1)
             cv2.putText(image, 'REPS', (15, 12), 
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 1, cv2.LINE_AA)
-            cv2.putText(image, str(counter), 
+            cv2.putText(image, str (counter), 
                         (10, 60), 
                         cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), 2, cv2.LINE_AA)
             
@@ -86,7 +87,7 @@ def generate_frames():
                                       mp_drawing.DrawingSpec(color=(245, 66, 230), thickness=2, circle_radius=2))
             
             ret, buffer = cv2.imencode('.jpg', image)
-            image = buffer.tobytes()
+            image = buffer.to bytes()
             
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + image + b'\r\n')
@@ -104,3 +105,4 @@ def video_feed():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
