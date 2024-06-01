@@ -3,11 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Squat Counter</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Exercise App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <h1>Squat Counter Application</h1>
-    <img src="{{ url_for('video_feed') }}" width="640" height="480">
+    <h1>Exercise App</h1>
+    <div class="camera">
+        <video id="video" width="640" height="480" autoplay></video>
+    </div>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
 </body>
 </html>
