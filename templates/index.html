@@ -4,17 +4,59 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Webcam Feed with Mediapipe</title>
+    <style>
+        /* static/style.css */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        video, canvas {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
 </head>
 <body>
     <h1>Webcam Feed with Mediapipe</h1>
     <video id="video" width="640" height="480" autoplay></video>
     <button id="capture">Capture</button>
-    <canvas id="canvas" width="640" height="480" style="display: none;"></canvas>
+    <canvas id="canvas" width="640" height="480"></canvas>
+    <div id="counter"></div>
+    <div id="stage"></div>
     <script>
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
         const captureButton = document.getElementById('capture');
         const context = canvas.getContext('2d');
+        const counterDiv = document.getElementById('counter');
+        const stageDiv = document.getElementById('stage');
+
+        let counter = 0;
+        let stage = null;
 
         // Access the user's webcam
         navigator.mediaDevices.getUserMedia({ video: true })
@@ -38,17 +80,37 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ image: imageDataURL })
+                body: JSON.stringify({ image: imageDataURL, counter: counter, stage: stage })
             })
             .then(response => response.json())
             .then(data => {
                 console.log('Landmarks:', data.landmarks);
-                // Here you can add code to draw landmarks on the video or handle the data as needed
+                counter = data.counter;
+                stage = data.stage;
+                counterDiv.textContent = `Counter: ${counter}`;
+                stageDiv.textContent = `Stage: ${stage}`;
+                drawLandmarks(data.landmarks);
             })
             .catch(error => {
                 console.error('Error processing image:', error);
             });
         });
+
+        function drawLandmarks(landmarks) {
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            if (landmarks.length > 0) {
+                landmarks.forEach(point => {
+                    const x = point.x * canvas.width;
+                    const y = point.y * canvas.height;
+                    context.beginPath();
+                    context.arc(x, y, 5, 0, 2 * Math.PI);
+                    context.fillStyle = 'red';
+                    context.fill();
+                });
+            }
+        }
     </script>
 </body>
 </html>
