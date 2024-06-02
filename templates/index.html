@@ -3,12 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Squat Counter</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>Webcam Feed with Mediapipe</title>
 </head>
 <body>
-    <h1>Squat Counter Application</h1>
-    <p>This is a simple web application for counting squats using OpenCV and MediaPipe.</p>
-    <img src="{{ url_for('video_feed') }}" width="640" height="480">
+    <h1>Webcam Feed with Mediapipe</h1>
+    <video id="video" width="640" height="480" autoplay></video>
+    <button id="capture">Capture</button>
+    <canvas id="canvas" width="640" height="480" style="display: none;"></canvas>
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const captureButton = document.getElementById('capture');
+        const context = canvas.getContext('2d');
+
+        // Access the user's webcam
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+            })
+            .catch(error => {
+                console.error('Error accessing webcam:', error);
+            });
+
+        captureButton.addEventListener('click', () => {
+            // Draw the video frame to the canvas
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Get the image data URL
+            const imageDataURL = canvas.toDataURL('image/jpeg');
+
+            // Send the image to the server
+            fetch('/process_image', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ image: imageDataURL })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Landmarks:', data.landmarks);
+                // Here you can add code to draw landmarks on the video or handle the data as needed
+            })
+            .catch(error => {
+                console.error('Error processing image:', error);
+            });
+        });
+    </script>
 </body>
 </html>
