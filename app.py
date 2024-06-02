@@ -1,9 +1,8 @@
-from flask import Flask, render_template, request, Response
+from flask import Flask, render_template, request, jsonify
 import cv2
 import mediapipe as mp
 import numpy as np
 import base64
-import json
 
 app = Flask(__name__)
 
@@ -46,35 +45,38 @@ def process_image():
 
     landmarks_list = [{"x": lm.x, "y": lm.y} for lm in landmarks]
 
-    try:
-        shoulder = [landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].x, landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].y]
-        elbow = [landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].x, landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].y]
-        wrist = [landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].x, landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].y]
+    if len(landmarks) >= 33:
+        try:
+            shoulder = [landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].x, landmarks[mp_pose.PoseLandmark.LEFT_SHOULDER.value].y]
+            elbow = [landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].x, landmarks[mp_pose.PoseLandmark.LEFT_ELBOW.value].y]
+            wrist = [landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].x, landmarks[mp_pose.PoseLandmark.LEFT_WRIST.value].y]
 
-        hip = [landmarks[mp_pose.PoseLandmark.LEFT_HIP.value].x, landmarks[mp_pose.PoseLandmark.LEFT_HIP.value].y]
-        knee = [landmarks[mp_pose.PoseLandmark.LEFT_KNEE.value].x, landmarks[mp_pose.PoseLandmark.LEFT_KNEE.value].y]
-        ankle = [landmarks[mp_pose.PoseLandmark.LEFT_ANKLE.value].x, landmarks[mp_pose.PoseLandmark.LEFT_ANKLE.value].y]
+            hip = [landmarks[mp_pose.PoseLandmark.LEFT_HIP.value].x, landmarks[mp_pose.PoseLandmark.LEFT_HIP.value].y]
+            knee = [landmarks[mp_pose.PoseLandmark.LEFT_KNEE.value].x, landmarks[mp_pose.PoseLandmark.LEFT_KNEE.value].y]
+            ankle = [landmarks[mp_pose.PoseLandmark.LEFT_ANKLE.value].x, landmarks[mp_pose.PoseLandmark.LEFT_ANKLE.value].y]
 
-        angle_knee = calculate_angle(hip, knee, ankle)
-        
-        if angle_knee > 169:
-            stage = "UP"
-        if stage == "UP" and 80 <= angle_knee <= 100:
-            stage = "Perfect"
-            counter += 1
-        elif stage == "UP" and (70 <= angle_knee < 80 or 100 < angle_knee <= 110):
-            stage = "Good"
-            counter += 1
-        elif stage == "UP" and (60 <= angle_knee < 70 or 110 < angle_knee <= 120):
-            stage = "Soso"
+            angle_knee = calculate_angle(hip, knee, ankle)
+            
+            if angle_knee > 169:
+                stage = "UP"
+            if stage == "UP" and 80 <= angle_knee <= 100:
+                stage = "Perfect"
+                counter += 1
+            elif stage == "UP" and (70 <= angle_knee < 80 or 100 < angle_knee <= 110):
+                stage = "Good"
+                counter += 1
+            elif stage == "UP" and (60 <= angle_knee < 70 or 110 < angle_knee <= 120):
+                stage = "Soso"
 
-    except:
-        pass
+        except Exception as e:
+            print(f"Error processing pose: {e}")
+            landmarks_list = []
 
     annotated_image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-    mp_drawing.draw_landmarks(annotated_image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS,
-                              mp_drawing.DrawingSpec(color=(245, 117, 66), thickness=2, circle_radius=2), 
-                              mp_drawing.DrawingSpec(color=(245, 66, 230), thickness=2, circle_radius=2))
+    if results.pose_landmarks:
+        mp_drawing.draw_landmarks(annotated_image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS,
+                                  mp_drawing.DrawingSpec(color=(245, 117, 66), thickness=2, circle_radius=2), 
+                                  mp_drawing.DrawingSpec(color=(245, 66, 230), thickness=2, circle_radius=2))
 
     ret, buffer = cv2.imencode('.jpg', annotated_image)
     annotated_image_base64 = base64.b64encode(buffer).decode('utf-8')
