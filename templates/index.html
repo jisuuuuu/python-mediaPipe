@@ -3,54 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Webcam Feed with Mediapipe</title>
-    <style>
-        /* static/style.css */
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background-color: #f0f0f0;
-        }
-
-        h1 {
-            color: #333;
-        }
-
-        video, canvas {
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        button {
-            margin-top: 10px;
-            padding: 10px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #0056b3;
-        }
-    </style>
+    <title>Squat Counter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <h1>Webcam Feed with Mediapipe</h1>
+    <h1>Squat Counter Application</h1>
+    <p>This is a simple web application for counting squats using OpenCV and MediaPipe.</p>
     <video id="video" width="640" height="480" autoplay></video>
-    <button id="capture">Capture</button>
     <canvas id="canvas" width="640" height="480"></canvas>
-    <div id="counter"></div>
-    <div id="stage"></div>
+    <div id="counter">Counter: 0</div>
+    <div id="stage">Stage: None</div>
     <script>
         const video = document.getElementById('video');
         const canvas = document.getElementById('canvas');
-        const captureButton = document.getElementById('capture');
         const context = canvas.getContext('2d');
         const counterDiv = document.getElementById('counter');
         const stageDiv = document.getElementById('stage');
@@ -67,14 +32,11 @@
                 console.error('Error accessing webcam:', error);
             });
 
-        captureButton.addEventListener('click', () => {
-            // Draw the video frame to the canvas
+        function processFrame() {
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            // Get the image data URL
             const imageDataURL = canvas.toDataURL('image/jpeg');
 
-            // Send the image to the server
             fetch('/process_image', {
                 method: 'POST',
                 headers: {
@@ -84,33 +46,27 @@
             })
             .then(response => response.json())
             .then(data => {
-                console.log('Landmarks:', data.landmarks);
                 counter = data.counter;
                 stage = data.stage;
                 counterDiv.textContent = `Counter: ${counter}`;
                 stageDiv.textContent = `Stage: ${stage}`;
-                drawLandmarks(data.landmarks);
+                
+                const img = new Image();
+                img.onload = function() {
+                    context.drawImage(img, 0, 0, canvas.width, canvas.height);
+                }
+                img.src = 'data:image/jpeg;base64,' + data.image;
             })
             .catch(error => {
                 console.error('Error processing image:', error);
             });
-        });
 
-        function drawLandmarks(landmarks) {
-            context.clearRect(0, 0, canvas.width, canvas.height);
-            context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-            if (landmarks.length > 0) {
-                landmarks.forEach(point => {
-                    const x = point.x * canvas.width;
-                    const y = point.y * canvas.height;
-                    context.beginPath();
-                    context.arc(x, y, 5, 0, 2 * Math.PI);
-                    context.fillStyle = 'red';
-                    context.fill();
-                });
-            }
+            requestAnimationFrame(processFrame);
         }
+
+        video.addEventListener('play', () => {
+            requestAnimationFrame(processFrame);
+        });
     </script>
 </body>
 </html>
