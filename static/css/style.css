@@ -5,19 +5,6 @@ body {
     text-align: center;
 }
 
-h1 {
-    color: #333;
-}
-
-video, canvas {
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    display: block;
-    margin: 0 auto;
-}
-
-#counter, #stage {
-    margin-top: 10px;
-    font-size: 20px;
-    color: #333;
+#video {
+    display: none;
 }
