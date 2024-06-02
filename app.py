@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, Response
 import cv2
 import mediapipe as mp
 import numpy as np
 import base64
+import json
 
 app = Flask(__name__)
 
@@ -70,7 +71,15 @@ def process_image():
     except:
         pass
 
-    return jsonify({"landmarks": landmarks_list, "counter": counter, "stage": stage})
+    annotated_image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+    mp_drawing.draw_landmarks(annotated_image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS,
+                              mp_drawing.DrawingSpec(color=(245, 117, 66), thickness=2, circle_radius=2), 
+                              mp_drawing.DrawingSpec(color=(245, 66, 230), thickness=2, circle_radius=2))
+
+    ret, buffer = cv2.imencode('.jpg', annotated_image)
+    annotated_image_base64 = base64.b64encode(buffer).decode('utf-8')
+
+    return jsonify({"landmarks": landmarks_list, "counter": counter, "stage": stage, "image": annotated_image_base64})
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')
